@@ -6,7 +6,7 @@ plugins {
     // Java support
     id("java")
     // Kotlin support
-    id("org.jetbrains.kotlin.jvm") version "1.9.22"
+    id("org.jetbrains.kotlin.jvm") version "2.3.0"
     // gradle-intellij-plugin - read more: https://github.com/JetBrains/gradle-intellij-plugin
     id("org.jetbrains.intellij.platform") version "2.1.0"
     // gradle-changelog-plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
@@ -67,14 +67,17 @@ detekt {
 }
 
 tasks {
+    withType<org.jetbrains.intellij.platform.gradle.tasks.BuildPluginTask> {
+        archiveVersion.set(pluginVersion)
+    }
     // Set the compatibility versions to 21
     withType<JavaCompile> {
         sourceCompatibility = "21"
         targetCompatibility = "21"
     }
-    listOf("compileKotlin", "compileTestKotlin").forEach {
-        getByName<KotlinCompile>(it) {
-            kotlinOptions.jvmTarget = "21"
+    withType<KotlinCompile> {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         }
     }
 
@@ -115,5 +118,9 @@ tasks {
         // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
         // https://jetbrains.org/intellij/sdk/docs/tutorials/build_system/deployment.html#specifying-a-release-channel
         channels.set(listOf(pluginVersion.split('-').getOrElse(1) { "default" }.split('.').first()))
+    }
+
+    buildSearchableOptions {
+        enabled = false
     }
 }
